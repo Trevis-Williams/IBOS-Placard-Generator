@@ -1,21 +1,103 @@
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { Package, Calendar, User, Hash, MapPin, Truck, Palette, Printer } from 'lucide-react';
 import QRCode from 'react-qr-code';
 
+// Get local date in YYYY-MM-DD format
+const getLocalDate = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// Parse date string as local date (not UTC) for display
+const formatDate = (dateStr: string) => {
+  if (!dateStr) return '---';
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  return date.toLocaleDateString('en-US', { 
+    weekday: 'short', 
+    year: 'numeric', 
+    month: 'short', 
+    day: 'numeric' 
+  });
+};
+
+// Load saved data from localStorage
+const loadFromStorage = <T,>(key: string, defaultValue: T): T => {
+  if (typeof window === 'undefined') return defaultValue;
+  try {
+    const saved = localStorage.getItem(key);
+    return saved ? JSON.parse(saved) : defaultValue;
+  } catch {
+    return defaultValue;
+  }
+};
+
 export default function App() {
-  const [taskNumber, setTaskNumber] = useState('TASK-001');
-  const [receivingDate, setReceivingDate] = useState(new Date().toISOString().split('T')[0]);
-  const [shipDate, setShipDate] = useState('');
-  const [createdBy, setCreatedBy] = useState('');
-  const [location, setLocation] = useState('');
-  const [description, setDescription] = useState('');
-  const [priority, setPriority] = useState<'Low' | 'Medium' | 'High' | 'Urgent'>('Medium');
-  const [logicalLocation, setLogicalLocation] = useState('');
-  const [sendTo, setSendTo] = useState('');
-  const [palletCount, setPalletCount] = useState('');
+  const [taskNumber, setTaskNumber] = useState(() => loadFromStorage('placard_taskNumber', 'TASK-001'));
+  const [receivingDate, setReceivingDate] = useState(() => loadFromStorage('placard_receivingDate', getLocalDate()));
+  const [shipDate, setShipDate] = useState(() => loadFromStorage('placard_shipDate', ''));
+  const [createdBy, setCreatedBy] = useState(() => loadFromStorage('placard_createdBy', ''));
+  const [location, setLocation] = useState(() => loadFromStorage('placard_location', ''));
+  const [description, setDescription] = useState(() => loadFromStorage('placard_description', ''));
+  const [priority, setPriority] = useState<'Low' | 'Medium' | 'High' | 'Urgent'>(() => loadFromStorage('placard_priority', 'Medium'));
+  const [logicalLocation, setLogicalLocation] = useState(() => loadFromStorage('placard_logicalLocation', ''));
+  const [sendTo, setSendTo] = useState(() => loadFromStorage('placard_sendTo', ''));
+  const [palletCount, setPalletCount] = useState(() => loadFromStorage('placard_palletCount', ''));
   
-  const [textColor, setTextColor] = useState('#000000');
-  const [bgColor, setBgColor] = useState('#ffffff');
+  const [textColor, setTextColor] = useState(() => loadFromStorage('placard_textColor', '#000000'));
+  const [bgColor, setBgColor] = useState(() => loadFromStorage('placard_bgColor', '#ffffff'));
+
+  // Save to localStorage whenever values change
+  useEffect(() => {
+    localStorage.setItem('placard_taskNumber', JSON.stringify(taskNumber));
+  }, [taskNumber]);
+  
+  useEffect(() => {
+    localStorage.setItem('placard_receivingDate', JSON.stringify(receivingDate));
+  }, [receivingDate]);
+  
+  useEffect(() => {
+    localStorage.setItem('placard_shipDate', JSON.stringify(shipDate));
+  }, [shipDate]);
+  
+  useEffect(() => {
+    localStorage.setItem('placard_createdBy', JSON.stringify(createdBy));
+  }, [createdBy]);
+  
+  useEffect(() => {
+    localStorage.setItem('placard_location', JSON.stringify(location));
+  }, [location]);
+  
+  useEffect(() => {
+    localStorage.setItem('placard_description', JSON.stringify(description));
+  }, [description]);
+  
+  useEffect(() => {
+    localStorage.setItem('placard_priority', JSON.stringify(priority));
+  }, [priority]);
+  
+  useEffect(() => {
+    localStorage.setItem('placard_logicalLocation', JSON.stringify(logicalLocation));
+  }, [logicalLocation]);
+  
+  useEffect(() => {
+    localStorage.setItem('placard_sendTo', JSON.stringify(sendTo));
+  }, [sendTo]);
+  
+  useEffect(() => {
+    localStorage.setItem('placard_palletCount', JSON.stringify(palletCount));
+  }, [palletCount]);
+  
+  useEffect(() => {
+    localStorage.setItem('placard_textColor', JSON.stringify(textColor));
+  }, [textColor]);
+  
+  useEffect(() => {
+    localStorage.setItem('placard_bgColor', JSON.stringify(bgColor));
+  }, [bgColor]);
   
   const placardRef = useRef<HTMLDivElement>(null);
 
@@ -248,21 +330,11 @@ export default function App() {
                 <div class="two-col">
                   <div class="col">
                     <div class="section-label">RECEIVING DATE</div>
-                    <div class="section-value">${receivingDate ? new Date(receivingDate).toLocaleDateString('en-US', { 
-                      weekday: 'short', 
-                      year: 'numeric', 
-                      month: 'short', 
-                      day: 'numeric' 
-                    }) : '---'}</div>
+                    <div class="section-value">${formatDate(receivingDate)}</div>
                   </div>
                   <div class="col">
                     <div class="section-label">SHIP DATE</div>
-                    <div class="section-value">${shipDate ? new Date(shipDate).toLocaleDateString('en-US', { 
-                      weekday: 'short', 
-                      year: 'numeric', 
-                      month: 'short', 
-                      day: 'numeric' 
-                    }) : '---'}</div>
+                    <div class="section-value">${formatDate(shipDate)}</div>
                   </div>
                 </div>
               </div>
@@ -592,23 +664,13 @@ export default function App() {
                     <div>
                       <div className="text-xs opacity-70 mb-1 tracking-wide">RECEIVING DATE</div>
                       <div className="text-xl" style={{ fontWeight: '600' }}>
-                        {receivingDate ? new Date(receivingDate).toLocaleDateString('en-US', { 
-                          weekday: 'short', 
-                          year: 'numeric', 
-                          month: 'short', 
-                          day: 'numeric' 
-                        }) : '---'}
+                        {formatDate(receivingDate)}
                       </div>
                     </div>
                     <div>
                       <div className="text-xs opacity-70 mb-1 tracking-wide">SHIP DATE</div>
                       <div className="text-xl" style={{ fontWeight: '600' }}>
-                        {shipDate ? new Date(shipDate).toLocaleDateString('en-US', { 
-                          weekday: 'short', 
-                          year: 'numeric', 
-                          month: 'short', 
-                          day: 'numeric' 
-                        }) : '---'}
+                        {formatDate(shipDate)}
                       </div>
                     </div>
                   </div>

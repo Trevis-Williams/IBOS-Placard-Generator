@@ -6,7 +6,16 @@
     <title>Placard Generator</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- This text will be replaced when React loads. If you see this, JS failed to load -->
+      <div id="loading-indicator" style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:system-ui;">
+        <p>Loading Placard Generator...</p>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Debug: Log if this inline script runs (tests if HTML loaded)
+      console.log('[DEBUG-D] index.html loaded, waiting for main.tsx module...');
+    </script>
   </body>
 </html>
